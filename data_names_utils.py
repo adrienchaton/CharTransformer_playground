@@ -51,6 +51,7 @@ def readLines(filename, all_letters):
 
 def load_data_names(data_path, fixed_len_range=None, token_dict={'[PAD]': 0, '[CLS]': 1, '[SEP]': 2, '[MASK]': 3}):
     # read all lines and characters
+    n_special_tokens = len(token_dict)
     all_letters = string.ascii_letters + " .,;'"
     category_lines = {}
     all_categories = []
@@ -83,7 +84,7 @@ def load_data_names(data_path, fixed_len_range=None, token_dict={'[PAD]': 0, '[C
     # assign character-level tokens
     used_letters = sorted(used_letters)
     for i, w in enumerate(used_letters):
-        token_dict[w] = i + 4
+        token_dict[w] = i + n_special_tokens
     n_samples = np.sum([len(category_lines[_k]) for _k in category_lines])
     return category_lines, token_dict, n_samples, min_len, max_len, lengths
 

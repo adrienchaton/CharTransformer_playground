@@ -41,16 +41,26 @@ from model import TransformerPredictor, LoggingTestLossCallback
 # training arguments
 # TODO: add descriptions of configurable hyper-parameters
 
+# TODO: check some launching issues with multi-processing and CUDA ?
+# RuntimeError: CUDA error: unknown error
+# CUDA kernel errors might be asynchronously reported at some other API call,so the stacktrace below might be incorrect.
+# For debugging consider passing CUDA_LAUNCH_BLOCKING=1.
+
+# python train.py --gpu_dev 1 --mname test0_4losses --max_iters 25000 --config train_4losses_config0.json --num_workers 4 --pin_memory
+# python train.py --gpu_dev 1 --mname test0_4losses --max_iters 25000 --config train_4losses_config0.json --num_workers 0 --pin_memory
+# CUDA_LAUNCH_BLOCKING=1 python train.py --gpu_dev 1 --mname test0_4losses --max_iters 25000 --config train_4losses_config0.json --num_workers 4 --pin_memory
 
 parser = ArgumentParser()
+parser.add_argument('--gpu_dev', default="", type=str)
 parser.add_argument('--mname', default="a_model", type=str)
 parser.add_argument('--data_path', default="data_names", type=str)
-parser.add_argument('--batch_size', default=16, type=int)
+parser.add_argument('--batch_size', default=32, type=int)
 parser.add_argument('--lr', default=1e-4, type=float)
 parser.add_argument('--warmup', default=250, type=int)
 parser.add_argument('--max_iters', default=100000, type=int)
 parser.add_argument('--gradient_clip_val', default=3., type=float)
 parser.add_argument('--num_workers', default=4, type=int)
+parser.add_argument('--pin_memory', action='store_true')
 parser.add_argument('--determinstic', action='store_true')
 parser.add_argument('--config', default="train_4losses_config0.json", type=str)
 parser.add_argument('--precision', default=32, type=int)
@@ -60,6 +70,7 @@ args = parser.parse_args()
 
 # training hyper-parameters
 
+gpu_dev = args.gpu_dev
 mname = args.mname
 data_path = args.data_path
 batch_size = args.batch_size
@@ -68,6 +79,7 @@ warmup = args.warmup
 max_iters = args.max_iters
 gradient_clip_val = args.gradient_clip_val
 num_workers = args.num_workers
+pin_memory = args.pin_memory
 determinstic = args.determinstic
 config = args.config
 precision = args.precision
@@ -117,6 +129,7 @@ print("\ntraining arguments", vars(args))
 pl.seed_everything(1234)
 np.random.seed(1234)
 
+os.environ["CUDA_VISIBLE_DEVICES"] = gpu_dev
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 gpus = 1 if torch.cuda.is_available() else 0
 
@@ -139,15 +152,15 @@ train_dataset, valid_dataset, test_dataset, token_dict, label_dict, max_len = pr
 
 n_classes = len(label_dict)
 
-train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, drop_last=True, num_workers=num_workers,
+train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, drop_last=True, num_workers=num_workers,pin_memory=pin_memory,
                               collate_fn=partial(custom_collate_fn, training_objectives=training_objectives, token_dict=token_dict, n_special_tokens=n_special_tokens, max_len=max_len,
                                                  mask_val=mask_val, random_masking_prob=random_masking_prob, random_splitting_prob=random_splitting_prob))
 
-valid_dataloader = DataLoader(valid_dataset, batch_size=batch_size, shuffle=False, drop_last=True, num_workers=num_workers,
+valid_dataloader = DataLoader(valid_dataset, batch_size=batch_size, shuffle=False, drop_last=True, num_workers=num_workers,pin_memory=pin_memory,
                               collate_fn=partial(custom_collate_fn, training_objectives=training_objectives, token_dict=token_dict, n_special_tokens=n_special_tokens, max_len=max_len,
                                                  mask_val=mask_val, random_masking_prob=random_masking_prob, random_splitting_prob=random_splitting_prob))
 
-test_dataloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, drop_last=True, num_workers=num_workers,
+test_dataloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, drop_last=True, num_workers=num_workers,pin_memory=pin_memory,
                              collate_fn=partial(custom_collate_fn, training_objectives=training_objectives, token_dict=token_dict, n_special_tokens=n_special_tokens, max_len=max_len,
                                                 mask_val=mask_val, random_masking_prob=random_masking_prob, random_splitting_prob=random_splitting_prob))
 
