@@ -189,6 +189,9 @@ trainer.fit(model, train_dataloader, valid_dataloader)
 ###############################################################################
 # evaluation
 
+# TODO: make evaluation functions e.g. write text files for each dataset split
+# with detokenized inputs and predictions + visualization of attentions
+
 # train_result = trainer.test(model, test_dataloaders=train_dataloader, verbose=False)
 # valid_result = trainer.test(model, test_dataloaders=valid_dataloader, verbose=False)
 # test_result = trainer.test(model, test_dataloaders=test_dataloader, verbose=False)
