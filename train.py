@@ -220,13 +220,11 @@ model.eval()
 ###############################################################################
 # misc.
 
-args = vars(args)
-with open(os.path.join(tmp_dir, 'argparse.json'), 'w') as f:
-    json.dump(args, f, sort_keys=True, indent=4)
-
 shutil.move(tmp_dir, os.path.join(curr_dir, "training_runs"))
 shutil.rmtree(default_root_dir)
 os.rename(os.path.join(curr_dir, "training_runs", "version_0"), default_root_dir)
 
 plot_tb_logs(default_root_dir,training_objectives)
-shutil.copyfile(os.path.join("configs", args.config), os.path.join("default_root_dir", args.config))
+shutil.copyfile(os.path.join("configs", args.config), os.path.join(default_root_dir, args.config))
+with open(os.path.join(default_root_dir, 'argparse.json'), 'w') as f:
+    json.dump(vars(args), f, sort_keys=True, indent=4)
