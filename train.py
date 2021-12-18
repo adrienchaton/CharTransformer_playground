@@ -193,7 +193,7 @@ time.sleep(10)
 lr_monitor = LearningRateMonitor(logging_interval='epoch')
 test_monitor = LoggingTestLossCallback()
 early_stop_callback = EarlyStopping(monitor="valid_tot_loss", min_delta=0.00, patience=early_stop_patience,
-                                    verbose=False, mode="min")  # early_stop_patience == epochs patience with no decrease
+                                    verbose=True, mode="min")  # early_stop_patience == epochs patience with no decrease
 
 trainer = pl.Trainer(max_steps=max_iters, check_val_every_n_epoch=1,
                      gpus=gpus, precision=precision, benchmark=True,
