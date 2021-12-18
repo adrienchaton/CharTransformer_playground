@@ -12,6 +12,7 @@
         11
     ],
     "input_dropout": 0.2,
+    "lamb_CLS": 0.3,
     "mask_val": -1000000000.0,
     "model_dim": 256,
     "nn_act": "gelu",

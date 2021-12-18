@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 @author: Adrien Bitton
 
@@ -117,9 +116,10 @@ class TransformerPredictor(pl.LightningModule):
     # full built-in class available at https://pytorch.org/docs/stable/generated/torch.nn.Transformer.html#torch.nn.Transformer
     # full custom class available at https://pytorch-lightning.readthedocs.io/en/latest/notebooks/course_UvA-DL/05-transformers-and-MH-attention.html
     # TODO: add the computation of attention maps for visualization purpose
-    def __init__(self, n_tokens, model_dim, input_dropout, max_len, training_objectives,
+    def __init__(self, n_tokens, model_dim, input_dropout, max_len, training_objectives, lamb_CLS,
                  E_position, nn_act, T_n_head, T_hidden_dim, T_dropout, T_norm_first, T_n_layers,
-                 output_dropout, cls_mode, cls_masked, token_pred_transposed, n_classes=None, lr=3e-4, warmup=250, max_iters=100000):
+                 output_dropout, cls_mode, cls_masked, token_pred_transposed, n_classes=None,
+                 optim_model="adam",lr=2e-4,weight_decay=1e-2, warmup=500, max_iters=100000):
         super().__init__()
         assert model_dim % T_n_head == 0
         self.save_hyperparameters()
@@ -169,7 +169,10 @@ class TransformerPredictor(pl.LightningModule):
     #     raise NotImplementedError
 
     def configure_optimizers(self):
-        optimizer = optim.Adam(self.parameters(), lr=self.hparams.lr)
+        if self.hparams.optim_model=="adam":
+            optimizer = optim.Adam(self.parameters(), lr=self.hparams.lr, weight_decay=self.hparams.weight_decay)
+        if self.hparams.optim_model=="adamw":
+            optimizer = optim.AdamW(self.parameters(), lr=self.hparams.lr, weight_decay=self.hparams.weight_decay)
         # We don't return the lr scheduler because we need to apply it per iteration, not per epoch
         self.lr_scheduler = CosineWarmupScheduler(
             optimizer, warmup=self.hparams.warmup, max_iters=self.hparams.max_iters)
@@ -226,7 +229,7 @@ class TransformerPredictor(pl.LightningModule):
                     pred_labels, 1))  # averaging over sequence dim
             mb_dict["pred_labels"] = pred_labels
             loss_dict["CLS_loss"] = F.cross_entropy(
-                pred_labels, mb_dict["cntry_labels"])
+                pred_labels, mb_dict["cntry_labels"])*self.hparams.lamb_CLS # weight factor on the supervised loss
             acc_dict["CLS_acc"] = (pred_labels.argmax(
                 dim=-1) == mb_dict["cntry_labels"]).float().mean()
         if "MLM" in self.hparams.training_objectives:
@@ -366,6 +369,8 @@ if __name__ == "__main__":
 
     # training_objectives = ["CLS","MLM","LA"]
     # batch_size = 1
+    
+    lamb_CLS = 0.3
 
     token_dict = {'[PAD]': 0, '[CLS]': 1, '[SEP]': 2,
                   '[MASK]': 3}  # special tokens used for training
@@ -397,7 +402,7 @@ if __name__ == "__main__":
     cls_masked = True
     token_pred_transposed = False
     n_classes = len(label_dict)
-    model = TransformerPredictor(len(token_dict), model_dim, input_dropout, max_len+2, training_objectives,
+    model = TransformerPredictor(len(token_dict), model_dim, input_dropout, max_len+2, training_objectives, lamb_CLS,
                                  E_position, nn_act, T_n_head, T_hidden_dim, T_dropout, T_norm_first, T_n_layers,
                                  output_dropout, cls_mode, cls_masked, token_pred_transposed, n_classes=n_classes, lr=3e-4, warmup=250, max_iters=100000)
     loss_dict, mb_dict, acc_dict = model.calculate_losses(mb_dict)
@@ -411,6 +416,7 @@ if __name__ == "__main__":
     a_config["test_size"] = 0.1
     a_config["fixed_len_range"] = [4,11]
     a_config["training_objectives"] = ["CLS","MLM","LA","NSP"]
+    a_config["lamb_CLS"] = 0.3
     a_config["token_dict"] = {'[PAD]': 0, '[CLS]': 1, '[SEP]': 2, '[MASK]': 3}
     a_config["mask_val"] = -1e9
     a_config["random_masking_prob"] = 0.15

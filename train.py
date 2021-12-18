@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 @author: Adrien Bitton
 
@@ -33,7 +32,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torch.utils.data import TensorDataset, DataLoader
 
-from data_names_utils import prepare_datasets_names, custom_collate_fn
+from data_names_utils import prepare_datasets_names, custom_collate_fn, plot_tb_logs
 from model import TransformerPredictor, LoggingTestLossCallback
 
 
@@ -46,17 +45,19 @@ from model import TransformerPredictor, LoggingTestLossCallback
 # CUDA kernel errors might be asynchronously reported at some other API call,so the stacktrace below might be incorrect.
 # For debugging consider passing CUDA_LAUNCH_BLOCKING=1.
 
-# python train.py --gpu_dev 1 --mname test0_4losses --max_iters 25000 --config train_4losses_config0.json --num_workers 4 --pin_memory
-# python train.py --gpu_dev 1 --mname test0_4losses --max_iters 25000 --config train_4losses_config0.json --num_workers 0 --pin_memory
-# CUDA_LAUNCH_BLOCKING=1 python train.py --gpu_dev 1 --mname test0_4losses --max_iters 25000 --config train_4losses_config0.json --num_workers 4 --pin_memory
+# python train.py --gpu_dev 1 --mname test0_4losses --max_iters 40000 --config train_4losses_config0.json --num_workers 4 --pin_memory
+# python train.py --gpu_dev 1 --mname test0_4losses --max_iters 40000 --config train_4losses_config0.json --num_workers 0 --pin_memory
+# CUDA_LAUNCH_BLOCKING=1 python train.py --gpu_dev 1 --mname test0_4losses --max_iters 40000 --config train_4losses_config0.json --num_workers 4 --pin_memory
 
 parser = ArgumentParser()
 parser.add_argument('--gpu_dev', default="", type=str)
 parser.add_argument('--mname', default="a_model", type=str)
 parser.add_argument('--data_path', default="data_names", type=str)
 parser.add_argument('--batch_size', default=32, type=int)
-parser.add_argument('--lr', default=1e-4, type=float)
-parser.add_argument('--warmup', default=250, type=int)
+parser.add_argument('--optim_model', default="adam", type=str)
+parser.add_argument('--lr', default=2e-4, type=float)
+parser.add_argument('--weight_decay', default=1e-2, type=float)
+parser.add_argument('--warmup', default=500, type=int)
 parser.add_argument('--max_iters', default=100000, type=int)
 parser.add_argument('--gradient_clip_val', default=3., type=float)
 parser.add_argument('--num_workers', default=4, type=int)
@@ -74,7 +75,9 @@ gpu_dev = args.gpu_dev
 mname = args.mname
 data_path = args.data_path
 batch_size = args.batch_size
+optim_model = args.optim_model
 lr = args.lr
+weight_decay = args.weight_decay
 warmup = args.warmup
 max_iters = args.max_iters
 gradient_clip_val = args.gradient_clip_val
@@ -99,6 +102,7 @@ valid_size = config["valid_size"]
 test_size = config["test_size"]
 fixed_len_range = config["fixed_len_range"]
 training_objectives = config["training_objectives"]
+lamb_CLS = config["lamb_CLS"]
 token_dict = config["token_dict"]
 mask_val = config["mask_val"]
 random_masking_prob = config["random_masking_prob"]
@@ -164,10 +168,10 @@ test_dataloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False,
                              collate_fn=partial(custom_collate_fn, training_objectives=training_objectives, token_dict=token_dict, n_special_tokens=n_special_tokens, max_len=max_len,
                                                 mask_val=mask_val, random_masking_prob=random_masking_prob, random_splitting_prob=random_splitting_prob))
 
-model = TransformerPredictor(len(token_dict), model_dim, input_dropout, max_len+2, training_objectives,
+model = TransformerPredictor(len(token_dict), model_dim, input_dropout, max_len+2, training_objectives, lamb_CLS,
                              E_position, nn_act, T_n_head, T_hidden_dim, T_dropout, T_norm_first, T_n_layers,
                              output_dropout, cls_mode, cls_masked, token_pred_transposed, n_classes=n_classes,
-                             lr=lr, warmup=warmup, max_iters=max_iters)
+                             optim_model=optim_model,lr=lr,weight_decay=weight_decay, warmup=warmup, max_iters=max_iters)
 
 model.to(device)
 print("\nmodel running on device", model.device)
@@ -223,3 +227,6 @@ with open(os.path.join(tmp_dir, 'argparse.json'), 'w') as f:
 shutil.move(tmp_dir, os.path.join(curr_dir, "training_runs"))
 shutil.rmtree(default_root_dir)
 os.rename(os.path.join(curr_dir, "training_runs", "version_0"), default_root_dir)
+
+plot_tb_logs(default_root_dir,training_objectives)
+shutil.copyfile(os.path.join("configs", args.config), os.path.join("default_root_dir", args.config))

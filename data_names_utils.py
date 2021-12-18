@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 @author: Adrien Bitton
 
@@ -32,6 +31,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 from torch.utils.data import TensorDataset, DataLoader
+from tensorboard.backend.event_processing.event_accumulator import EventAccumulator
 
 
 def findFiles(path): return glob.glob(path)
@@ -318,6 +318,51 @@ def custom_collate_fn(data, training_objectives, token_dict, n_special_tokens, m
                 mb_dict[_k] = mb_dict[_k].bool()
 
         return mb_dict
+
+
+def plot_tb_logs(path,training_objectives):
+    # read tensorboard logs
+    event_file = glob.glob(os.path.join(path,'*tfevents*'))[0]
+    event_acc = EventAccumulator(event_file)
+    event_acc.Reload()
+    data_subsets = ["train_","valid_","test_"]
+    colour_subsets = ["r","y","b"]
+    title_end = str([data_subsets[_str]+colour_subsets[_str] for _str in range(len(data_subsets))])
+    log_metrics = ["_loss","_acc"]
+    scalars_dict = dict()
+    for subset in data_subsets:
+        for metric in log_metrics:
+            for objective in training_objectives+["tot"]:
+                if objective+metric!="tot_acc":
+                    values = []
+                    steps = []
+                    for e in event_acc.Scalars(subset+objective+metric):
+                        values.append(e.value)
+                        steps.append(e.step)
+                    scalars_dict[subset+objective+metric] = [steps,values]
+                else:
+                    pass
+    # make a plot with overlaying train/valid/test for each objective and metric
+    n_subplot_cols = len(training_objectives)
+    n_subplot_lines = len(log_metrics)
+    plt.figure(figsize=(12,12))
+    plt.suptitle("colour scheme = "+title_end)
+    for _i,objective in enumerate(training_objectives):
+        for _j,metric in enumerate(log_metrics):
+            plt.subplot(n_subplot_lines,n_subplot_cols,_i+_j*n_subplot_cols+1)
+            plt.title(objective+metric)
+            for _k,subset in enumerate(data_subsets):
+                plt.plot(scalars_dict[subset+objective+metric][0],scalars_dict[subset+objective+metric][1],c=colour_subsets[_k])
+    plt.tight_layout()
+    plt.savefig(os.path.join(path,'separate_objectives.pdf'))
+    # and a separate plot for tot_loss (no tot_acc)
+    plt.figure(figsize=(12,12))
+    plt.suptitle("tot_loss\ncolour scheme = "+title_end)
+    for _k,subset in enumerate(data_subsets):
+        plt.plot(scalars_dict[subset+"tot_loss"][0],scalars_dict[subset+"tot_loss"][1],c=colour_subsets[_k])
+    plt.tight_layout()
+    plt.savefig(os.path.join(path,'total_loss.pdf'))
+    plt.close("all")
 
 
 if __name__ == "__main__":
