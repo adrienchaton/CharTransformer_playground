@@ -116,7 +116,7 @@ class TransformerPredictor(pl.LightningModule):
     # full built-in class available at https://pytorch.org/docs/stable/generated/torch.nn.Transformer.html#torch.nn.Transformer
     # full custom class available at https://pytorch-lightning.readthedocs.io/en/latest/notebooks/course_UvA-DL/05-transformers-and-MH-attention.html
     # TODO: add the computation of attention maps for visualization purpose
-    def __init__(self, n_tokens, model_dim, input_dropout, max_len, training_objectives, lamb_CLS,
+    def __init__(self, n_tokens, model_dim, input_dropout, max_len, training_objectives, lamb_CLS, detach_CLS,
                  E_position, nn_act, T_n_head, T_hidden_dim, T_dropout, T_norm_first, T_n_layers,
                  output_dropout, cls_mode, cls_masked, token_pred_transposed, n_classes=None,
                  optim_model="adam",lr=2e-4,weight_decay=1e-2, warmup=500, max_iters=100000):
@@ -221,6 +221,8 @@ class TransformerPredictor(pl.LightningModule):
             else:
                 pred_labels = self.encode(
                     mb_dict["padded_data"], src_key_padding_mask=mb_dict["padding_mask"])
+            if self.hparams.detach_CLS:
+                pred_labels = pred_labels.detach() # the supervised objective does not backpropagate to the encoder
             if self.hparams.cls_mode == "start":
                 pred_labels = self.CLS_predictor(
                     pred_labels[:, 0, :])  # on the first [CLS] position
@@ -371,6 +373,7 @@ if __name__ == "__main__":
     # batch_size = 1
     
     lamb_CLS = 0.3
+    detach_CLS = True
 
     token_dict = {'[PAD]': 0, '[CLS]': 1, '[SEP]': 2,
                   '[MASK]': 3}  # special tokens used for training
@@ -402,7 +405,7 @@ if __name__ == "__main__":
     cls_masked = True
     token_pred_transposed = False
     n_classes = len(label_dict)
-    model = TransformerPredictor(len(token_dict), model_dim, input_dropout, max_len+2, training_objectives, lamb_CLS,
+    model = TransformerPredictor(len(token_dict), model_dim, input_dropout, max_len+2, training_objectives, lamb_CLS, detach_CLS,
                                  E_position, nn_act, T_n_head, T_hidden_dim, T_dropout, T_norm_first, T_n_layers,
                                  output_dropout, cls_mode, cls_masked, token_pred_transposed, n_classes=n_classes, lr=3e-4, warmup=250, max_iters=100000)
     loss_dict, mb_dict, acc_dict = model.calculate_losses(mb_dict)
@@ -417,6 +420,7 @@ if __name__ == "__main__":
     a_config["fixed_len_range"] = [4,11]
     a_config["training_objectives"] = ["CLS","MLM","LA","NSP"]
     a_config["lamb_CLS"] = 0.3
+    a_config["detach_CLS"] = False
     a_config["token_dict"] = {'[PAD]': 0, '[CLS]': 1, '[SEP]': 2, '[MASK]': 3}
     a_config["mask_val"] = -1e9
     a_config["random_masking_prob"] = 0.15

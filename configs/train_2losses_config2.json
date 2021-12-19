@@ -7,7 +7,7 @@
     "T_norm_first": true,
     "cls_masked": true,
     "cls_mode": "start",
-    "detach_CLS": false,
+    "detach_CLS": true,
     "fixed_len_range": [
         4,
         11

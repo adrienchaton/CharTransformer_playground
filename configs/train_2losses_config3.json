@@ -4,10 +4,10 @@
     "T_hidden_dim": 256,
     "T_n_head": 2,
     "T_n_layers": 2,
-    "T_norm_first": true,
+    "T_norm_first": false,
     "cls_masked": true,
     "cls_mode": "start",
-    "detach_CLS": false,
+    "detach_CLS": true,
     "fixed_len_range": [
         4,
         11

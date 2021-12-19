@@ -38,7 +38,6 @@ from model import TransformerPredictor, LoggingTestLossCallback
 
 ###############################################################################
 # training arguments
-# TODO: add descriptions of configurable hyper-parameters
 
 # TODO: check some launching issues with multi-processing and CUDA ?
 # RuntimeError: CUDA error: unknown error
@@ -56,15 +55,15 @@ parser.add_argument('--data_path', default="data_names", type=str)
 parser.add_argument('--batch_size', default=32, type=int)
 parser.add_argument('--optim_model', default="adam", type=str)
 parser.add_argument('--lr', default=1e-4, type=float)
-parser.add_argument('--weight_decay', default=1e-2, type=float)
+parser.add_argument('--weight_decay', default=1e-4, type=float)
 parser.add_argument('--warmup', default=250, type=int)
 parser.add_argument('--max_iters', default=100000, type=int)
 parser.add_argument('--gradient_clip_val', default=3., type=float)
 parser.add_argument('--num_workers', default=4, type=int)
 parser.add_argument('--pin_memory', action='store_true')
-parser.add_argument('--determinstic', action='store_true')
+parser.add_argument('--deterministic', action='store_true')
 parser.add_argument('--config', default="train_4losses_config0.json", type=str)
-parser.add_argument('--precision', default=32, type=int)
+parser.add_argument('--fp16', action='store_true')
 parser.add_argument('--profiler', action='store_true')
 parser.add_argument('--early_stop_patience', default=10, type=int)
 args = parser.parse_args()
@@ -75,19 +74,18 @@ gpu_dev = args.gpu_dev
 mname = args.mname
 data_path = args.data_path
 batch_size = args.batch_size
-optim_model = args.optim_model
+optim_model = args.optim_model # either "adam" or "adamw"
 lr = args.lr
 weight_decay = args.weight_decay
-warmup = args.warmup
+warmup = args.warmup # for lr, in steps
 max_iters = args.max_iters
 gradient_clip_val = args.gradient_clip_val
 num_workers = args.num_workers
 pin_memory = args.pin_memory
-determinstic = args.determinstic
+deterministic = args.deterministic
 config = args.config
-precision = args.precision
 profiler = args.profiler
-early_stop_patience = args.early_stop_patience
+early_stop_patience = args.early_stop_patience # in epochs
 
 curr_dir = os.getcwd()
 default_root_dir = os.path.join(curr_dir, "training_runs", mname)
@@ -100,29 +98,30 @@ with open(os.path.join("configs", config)) as json_file:
 
 valid_size = config["valid_size"]
 test_size = config["test_size"]
-fixed_len_range = config["fixed_len_range"]
-training_objectives = config["training_objectives"]
-lamb_CLS = config["lamb_CLS"]
+fixed_len_range = config["fixed_len_range"] # restrict the data min/max lengths
+training_objectives = config["training_objectives"] # choose which objectives to train on
+lamb_CLS = config["lamb_CLS"] # multiplicative factor on the supervised CLS loss
+detach_CLS = config["detach_CLS"] # detaching means CLS loss does not optimize the transformer encoder
 token_dict = config["token_dict"]
 mask_val = config["mask_val"]
-random_masking_prob = config["random_masking_prob"]
-random_splitting_prob = config["random_splitting_prob"]
+random_masking_prob = config["random_masking_prob"] # for MLM
+random_splitting_prob = config["random_splitting_prob"] # for NSP
 
 # model hyper-parameters
 
 model_dim = config["model_dim"]
 input_dropout = config["input_dropout"]
-E_position = config["E_position"]
+E_position = config["E_position"] # either sinusoidal or learned position embedding
 nn_act = config["nn_act"]
 T_n_head = config["T_n_head"]
 T_hidden_dim = config["T_hidden_dim"]
 T_dropout = config["T_dropout"]
-T_norm_first = config["T_norm_first"]
+T_norm_first = config["T_norm_first"] # LN first can help stabilizing the early training
 T_n_layers = config["T_n_layers"]
 output_dropout = config["output_dropout"]
-cls_mode = config["cls_mode"]
-cls_masked = config["cls_masked"]
-token_pred_transposed = config["token_pred_transposed"]
+cls_mode = config["cls_mode"] # either using start CLS position or averaging all encoder outputs
+cls_masked = config["cls_masked"] # performing CLS prediction from masked or unmasked data
+token_pred_transposed = config["token_pred_transposed"] # character prediction, either using linear layers or transposed of embedding matrix
 
 print("\ntraining arguments", vars(args))
 
@@ -136,9 +135,10 @@ np.random.seed(1234)
 os.environ["CUDA_VISIBLE_DEVICES"] = gpu_dev
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 gpus = 1 if torch.cuda.is_available() else 0
+precision = 16 if args.fp16 else 32
 
-if determinstic:
-    torch.backends.cudnn.determinstic = True
+if deterministic:
+    torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
 else:
     torch.backends.cudnn.benchmark = True
@@ -168,7 +168,7 @@ test_dataloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False,
                              collate_fn=partial(custom_collate_fn, training_objectives=training_objectives, token_dict=token_dict, n_special_tokens=n_special_tokens, max_len=max_len,
                                                 mask_val=mask_val, random_masking_prob=random_masking_prob, random_splitting_prob=random_splitting_prob))
 
-model = TransformerPredictor(len(token_dict), model_dim, input_dropout, max_len+2, training_objectives, lamb_CLS,
+model = TransformerPredictor(len(token_dict), model_dim, input_dropout, max_len+2, training_objectives, lamb_CLS, detach_CLS,
                              E_position, nn_act, T_n_head, T_hidden_dim, T_dropout, T_norm_first, T_n_layers,
                              output_dropout, cls_mode, cls_masked, token_pred_transposed, n_classes=n_classes,
                              optim_model=optim_model,lr=lr,weight_decay=weight_decay, warmup=warmup, max_iters=max_iters)
