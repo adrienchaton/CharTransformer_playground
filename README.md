@@ -23,3 +23,7 @@ If num_workers is low, the code may be quite slow given the inefficient batching
 ### Example run
 
 Losses and accuracies while training a model on the 4 objectives together, with detach_CLS=False (e.g. config=train_4losses_config1.json).
+
+![Alt text](training_runs/test1_4losses/separate_objectives.jpg'?raw=true "Logs of Separate Objectives")
+
+![Alt text](training_runs/test1_4losses/total_loss.jpg'?raw=true "Logs of Total Losses")
