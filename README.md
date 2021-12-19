@@ -22,7 +22,7 @@ If num_workers is low, the code may be quite slow given the inefficient batching
 
 ### Example runs
 
-*config=train_4losses_config1.json*
+**config=train_4losses_config1.json**
 
 Losses and accuracies while training a model on the 4 objectives together, with detach_CLS=False.
 
@@ -30,7 +30,7 @@ Losses and accuracies while training a model on the 4 objectives together, with 
 
 ![Logs of Total Losses](plots/train_4losses_config0_total_loss.jpg)
 
-*config=train_4losses_config3.json*
+**config=train_4losses_config3.json**
 
 Losses and accuracies while training a model on the 4 objectives together, with detach_CLS=True.
 
