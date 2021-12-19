@@ -20,10 +20,21 @@ The combination of all losses at the same time may not be efficient. E.g. optimi
 If num_workers is low, the code may be quite slow given the inefficient batching methods implemented in data_names_utils.custom_collate_fn. Fast parallelized batch sampling can be achieved for objectives "CLS", "MLM" (if simplified) and "LA".
 
 
-### Example run
+### Example runs
 
-Losses and accuracies while training a model on the 4 objectives together, with detach_CLS=False (e.g. config=train_4losses_config1.json).
+*config=train_4losses_config1.json*
 
-![Logs of Separate Objectives](training_runs/test1_4losses/separate_objectives.jpg)
+Losses and accuracies while training a model on the 4 objectives together, with detach_CLS=False.
 
-![Logs of Total Losses](training_runs/test1_4losses/total_loss.jpg)
+![Logs of Separate Objectives](plots/train_4losses_config0_separate_objectives.jpg)
+
+![Logs of Total Losses](plots/train_4losses_config0_total_loss.jpg)
+
+*config=train_4losses_config3.json*
+
+Losses and accuracies while training a model on the 4 objectives together, with detach_CLS=True.
+
+![Logs of Separate Objectives](plots/train_4losses_config3_separate_objectives.jpg)
+
+![Logs of Total Losses](plots/train_4losses_config3_total_loss.jpg)
+
