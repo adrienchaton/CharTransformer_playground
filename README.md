@@ -13,8 +13,13 @@ The "LA" objective is akin to GPT where the upper diagonal look-ahead masking fo
 The "NSP" objective is akin to BERT where sequences are randomly split and the second half can be swapped with another sequence ending.
 
 
-### Disclaimer
+### Remarks
 
-The combination of all losses at the same time may not be efficient. E.g. optimized BERT models such as RoBERTa have discarded the NSP loss. This approach is different than the usual SSL pre-training and supervised fine-tuning, however many fine-tuning approaches do keep SSL losses when possible.
+The combination of all losses at the same time may not be efficient. E.g. optimized BERT models such as RoBERTa have discarded the NSP loss. This approach is different than the usual SSL pre-training and supervised fine-tuning, however many fine-tuning approaches do keep SSL losses when possible. Setting detach_CLS=True corresponds to training the transformer encoder only on SSL losses and optimizing the supervised CLS loss with the prediction module alone.
 
 If num_workers is low, the code may be quite slow given the inefficient batching methods implemented in data_names_utils.custom_collate_fn. Fast parallelized batch sampling can be achieved for objectives "CLS", "MLM" (if simplified) and "LA".
+
+
+### Example run
+
+Losses and accuracies while training a model on the 4 objectives together, with detach_CLS=False (e.g. config=train_4losses_config1.json).
