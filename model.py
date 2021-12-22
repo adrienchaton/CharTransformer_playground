@@ -338,6 +338,59 @@ class TransformerPredictor(pl.LightningModule):
     #     batch_size = mb_dict["padded_data"].shape[0]
     #     loss_dict,mb_dict,acc_dict = self.calculate_losses(mb_dict)
     #     _ = self.log_metrics("test",loss_dict,acc_dict,batch_size)
+    
+    def compute_selfattention(self,x,mask,src_key_padding_mask,i_layer,d_model,num_heads):
+        h = F.linear(x, self.transformer_encoder.layers[i_layer].self_attn.in_proj_weight, bias=self.transformer_encoder.layers[i_layer].self_attn.in_proj_bias)
+        qkv = h.reshape(x.shape[0], x.shape[1], num_heads, 3 * d_model//num_heads)
+        qkv = qkv.permute(0, 2, 1, 3)  # [Batch, Head, SeqLen, Dims]
+        q, k, v = qkv.chunk(3, dim=-1) # [Batch, Head, SeqLen, d_head=d_model//num_heads]
+        attn_logits = torch.matmul(q, k.transpose(-2, -1)) # [Batch, Head, SeqLen, SeqLen]
+        d_k = q.size()[-1]
+        attn_probs = attn_logits / math.sqrt(d_k)
+        # combining src_mask e.g. upper triangular with src_key_padding_mask e.g. columns over each padding position
+        combined_mask = torch.zeros_like(attn_probs)
+        if mask is not None:
+            combined_mask += mask.float() # assume mask of shape (seq_len,seq_len)
+        if src_key_padding_mask is not None:
+            combined_mask += src_key_padding_mask.float().unsqueeze(1).unsqueeze(1).repeat(1,num_heads,x.shape[1],1)
+            # assume shape (batch_size,seq_len), repeating along head and line dimensions == "column" mask
+        combined_mask = torch.where(combined_mask>0,torch.zeros_like(combined_mask)-float("inf"),torch.zeros_like(combined_mask))
+        # setting masked logits to -inf before softmax
+        attn_probs += combined_mask
+        attn_probs = F.softmax(attn_probs, dim=-1)
+        return attn_logits,attn_probs
+    
+    def extract_selfattention_maps(self, x, mask=None, src_key_padding_mask=None, add_positional_encoding=True, add_segment_embedding=None):
+        # input embeddings
+        x = self.input_embedding(x)
+        if add_positional_encoding:
+            x = self.positional_encoding(x)
+        if add_segment_embedding is not None:
+            x[torch.where(add_segment_embedding == 1)] = x[torch.where(
+                add_segment_embedding == 1)]+self.NSP_embedding_A
+            x[torch.where(add_segment_embedding == 0)] = x[torch.where(
+                add_segment_embedding == 0)]+self.NSP_embedding_B
+        # forward through transformer_encoder
+        attn_logits_maps = []
+        attn_probs_maps = []
+        num_layers = self.transformer_encoder.num_layers
+        d_model = self.transformer_encoder.layers[0].self_attn.embed_dim
+        num_heads = self.transformer_encoder.layers[0].self_attn.num_heads
+        norm_first = self.transformer_encoder.layers[0].norm_first
+        with torch.no_grad():
+            for i in range(num_layers):
+                # compute attention of layer i
+                h = x.clone()
+                if norm_first:
+                    h = self.transformer_encoder.layers[i].norm1(h)
+                # attn = transformer_encoder.layers[i].self_attn(h, h, h,attn_mask=mask,key_padding_mask=src_key_padding_mask,need_weights=True)[1]
+                # attention_maps.append(attn) # of shape [batch_size,seq_len,seq_len]
+                attn_logits,attn_probs = self.compute_selfattention(h,mask,src_key_padding_mask,i,d_model,num_heads)
+                attn_logits_maps.append(attn_logits) # of shape [batch_size,num_heads,seq_len,seq_len]
+                attn_probs_maps.append(attn_probs)
+                # forward of layer i
+                x = self.transformer_encoder.layers[i](x,src_mask=mask,src_key_padding_mask=src_key_padding_mask)
+        return attn_logits_maps,attn_probs_maps
 
     # @torch.no_grad()
     # def get_attention_maps(self, x, mask=None, add_positional_encoding=True):
@@ -410,6 +463,8 @@ if __name__ == "__main__":
                                  output_dropout, cls_mode, cls_masked, token_pred_transposed, n_classes=n_classes, lr=3e-4, warmup=250, max_iters=100000)
     loss_dict, mb_dict, acc_dict = model.calculate_losses(mb_dict)
     model.gradient_check(mb_dict)
+    
+    attn_logits_maps,attn_probs_maps = model.extract_selfattention_maps(mb_dict["padded_data"], mask=None, src_key_padding_mask=mb_dict["padding_mask"], add_positional_encoding=True, add_segment_embedding=None)
 
     """
     # example configuration
