@@ -339,6 +339,8 @@ class TransformerPredictor(pl.LightningModule):
     #     loss_dict,mb_dict,acc_dict = self.calculate_losses(mb_dict)
     #     _ = self.log_metrics("test",loss_dict,acc_dict,batch_size)
     
+    # TODO: double-check the functions below
+    
     def compute_selfattention(self,x,mask,src_key_padding_mask,i_layer,d_model,num_heads):
         h = F.linear(x, self.transformer_encoder.layers[i_layer].self_attn.in_proj_weight, bias=self.transformer_encoder.layers[i_layer].self_attn.in_proj_bias)
         qkv = h.reshape(x.shape[0], x.shape[1], num_heads, 3 * d_model//num_heads)
