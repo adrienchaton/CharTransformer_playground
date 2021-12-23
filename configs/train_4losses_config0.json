@@ -12,10 +12,10 @@
         4,
         11
     ],
-    "input_dropout": 0.2,
+    "input_dropout": 0,
     "lamb_CLS": 1.0,
     "mask_val": -1000000000.0,
-    "model_dim": 256,
+    "model_dim": 128,
     "nn_act": "relu",
     "output_dropout": 0.2,
     "random_masking_prob": 0.15,

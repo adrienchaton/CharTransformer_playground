@@ -34,7 +34,7 @@ from torch.utils.data import TensorDataset, DataLoader
 from tensorboard.backend.event_processing.event_accumulator import EventAccumulator
 
 
-def findFiles(path): return glob.glob(path)
+def findFiles(path): return sorted(glob.glob(path))
 
 
 def unicodeToAscii(s, all_letters):

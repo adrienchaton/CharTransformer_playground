@@ -115,7 +115,6 @@ class TransformerPredictor(pl.LightningModule):
     # a half-way configurable Transformer class derived from https://pytorch.org/tutorials/beginner/transformer_tutorial.html
     # full built-in class available at https://pytorch.org/docs/stable/generated/torch.nn.Transformer.html#torch.nn.Transformer
     # full custom class available at https://pytorch-lightning.readthedocs.io/en/latest/notebooks/course_UvA-DL/05-transformers-and-MH-attention.html
-    # TODO: add the computation of attention maps for visualization purpose
     def __init__(self, n_tokens, model_dim, input_dropout, max_len, training_objectives, lamb_CLS, detach_CLS,
                  E_position, nn_act, T_n_head, T_hidden_dim, T_dropout, T_norm_first, T_n_layers,
                  output_dropout, cls_mode, cls_masked, token_pred_transposed, n_classes=None,
@@ -198,7 +197,8 @@ class TransformerPredictor(pl.LightningModule):
         x = self.transformer_encoder(
             x, mask=mask, src_key_padding_mask=src_key_padding_mask)
         return x
-
+    
+    # TODO: split into calculate_preds and then calculate_losses
     def calculate_losses(self, mb_dict):
         for _k in mb_dict:
             mb_dict[_k] = mb_dict[_k].to(self.device)
@@ -342,7 +342,8 @@ class TransformerPredictor(pl.LightningModule):
     # TODO: double-check the functions below
     
     def compute_selfattention(self,x,mask,src_key_padding_mask,i_layer,d_model,num_heads):
-        h = F.linear(x, self.transformer_encoder.layers[i_layer].self_attn.in_proj_weight, bias=self.transformer_encoder.layers[i_layer].self_attn.in_proj_bias)
+        h = F.linear(x, self.transformer_encoder.layers[i_layer].self_attn.in_proj_weight,
+                     bias=self.transformer_encoder.layers[i_layer].self_attn.in_proj_bias)
         qkv = h.reshape(x.shape[0], x.shape[1], num_heads, 3 * d_model//num_heads)
         qkv = qkv.permute(0, 2, 1, 3)  # [Batch, Head, SeqLen, Dims]
         q, k, v = qkv.chunk(3, dim=-1) # [Batch, Head, SeqLen, d_head=d_model//num_heads]

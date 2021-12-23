@@ -129,6 +129,8 @@ print("\ntraining arguments", vars(args))
 ###############################################################################
 # compute settings with single GPU support
 
+# TODO: should the pl seed be randomly set if not deterministic ?
+# in order to keep same data splits (np seed) but have different layer inits (pl seed)
 pl.seed_everything(1234)
 np.random.seed(1234)
 
@@ -147,7 +149,7 @@ print("\ndevice", device)
 
 
 ###############################################################################
-# data  preparation
+# data preparation and model construction
 
 n_special_tokens = len(token_dict)
 
