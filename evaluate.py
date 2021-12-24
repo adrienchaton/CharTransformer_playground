@@ -240,7 +240,7 @@ for i in range(batch_size):
         # 'CLS', 'MLM', 'LA', 'NSP'
         if t_obj=="CLS":
             pred_label = label_dict[np.argmax(mb_dict["pred_labels"][i].cpu().numpy())]
-            true_label = label_dict[np.argmax(mb_dict["cntry_labels"][i].cpu().numpy())]
+            true_label = label_dict[mb_dict["cntry_labels"][i].item()]
             print("predicted and true country labels",pred_label,true_label)
 
 
