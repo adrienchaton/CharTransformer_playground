@@ -18,6 +18,7 @@ Guidelines: mark the papers already fully-read, keep chronological order (from e
 * Yang / XLNet: Generalized Autoregressive Pretraining for Language Understanding / 2019 / **read**
 * Dai / Transformer-xl: Attentive language models beyond a fixed-length context / 2019
 * Conneau / Cross-lingual Language Model Pretraining / 2019
+* Keskar / Ctrl: A conditional transformer language model for controllable generation / 2019
 * Ott / FAIRSEQ: A Fast, Extensible Toolkit for Sequence Modeling / 2019 / **read**
 * Xiong / On Layer Normalization in the Transformer Architecture / 2020
 * Tay / Efficient Transformers: A Survey / 2020
