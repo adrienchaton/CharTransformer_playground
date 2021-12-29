@@ -83,6 +83,7 @@ Guidelines: mark the papers already fully-read, keep chronological order (from e
 * Yang / Improved protein structure prediction using predicted interresidue orientations / 2020
 * Friedensohn / Convergent selection in antibody repertoires is revealed by deep learning / 2020
 * Nambiar / Transforming the language of life: transformer neural networks for protein prediction tasks / 2020
+* Ji / DNABERT: pre-trained Bidirectional Encoder Representations from Transformers model for DNA-language in genome / 2020
 * Grechishnikova / Transformer neural network for protein‐specific de novo drug generation as a machine translation problem / 2021
 * Rao / MSA Transformer / 2021
 * Thumuluri / NetSolP: predicting protein solubility in E. coli using language models / 2021
