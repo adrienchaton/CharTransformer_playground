@@ -5,15 +5,20 @@ Guidelines: mark the papers already fully-read, keep chronological order (from e
 
 ## General NLP
 
+* Miyato / Adversarial training methods for semi-supervised text classification / 2016
+* Al-Rfou / Character-level language modeling with deeper self-attention / 2018
+* Fedus / Maskgan: better text generation via filling in the_ / 2018
 * Radford / Improving Language Understanding by Generative Pre-Training (GPT) / 2018 / **read**
 * Devlin / BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding / 2019 / **read**
 * Liu / RoBERTa: A Robustly Optimized BERT Pretraining Approach / 2019 / **read**
+* Lan / Albert: A lite bert for self-supervised learning of language representations / 2019
 * Jain / Attention is not Explanation / 2019
 * Wiegreffe / Attention is not not Explanation / 2019
-* Wang / BERT has a Mouth, and It Must Speak: BERT as a Markov Random Field Language Model / 2019
-* Yang / XLNet: Generalized Autoregressive Pretraining for Language Understanding / 2019
+* Wang / BERT has a Mouth, and It Must Speak: BERT as a Markov Random Field Language Model / 2019 / **read**
+* Yang / XLNet: Generalized Autoregressive Pretraining for Language Understanding / 2019 / **read**
+* Dai / Transformer-xl: Attentive language models beyond a fixed-length context / 2019
 * Conneau / Cross-lingual Language Model Pretraining / 2019
-* Ott / FAIRSEQ: A Fast, Extensible Toolkit for Sequence Modeling / 2019
+* Ott / FAIRSEQ: A Fast, Extensible Toolkit for Sequence Modeling / 2019 / **read**
 * Xiong / On Layer Normalization in the Transformer Architecture / 2020
 * Tay / Efficient Transformers: A Survey / 2020
 * Beltagy / Longformer: The Long-Document Transformer / 2020
@@ -41,6 +46,8 @@ Guidelines: mark the papers already fully-read, keep chronological order (from e
 
 * Alley / Unified rational protein engineering with sequence-based deep representation learning (UniRep) / 2019
 * Hoarfrost / Shedding Light on Microbial Dark Matter with A Universal Language of Life / 2020 / **read**
+* Gao / Deep Learning in Protein Structural Modeling and Design / 2020
+* CASP14 / Critical assessment of techniques for protein structure prediction (abstract book) / 2020
 * Ofer / The language of proteins: NLP, machine learning & protein sequences / 2021
 * Bepler / Learning the protein language: Evolution, structure, and function / 2021
 * Detlefsen / What is a meaningful representation of protein sequences? / 2021
@@ -60,6 +67,9 @@ Guidelines: mark the papers already fully-read, keep chronological order (from e
 * AlQuraishi / ProteinNet: a standardized data set for machine learning of protein structure / 2019
 * Riesselman / Accelerating Protein Design Using Autoregressive Generative Models / 2019
 * Elnaggar / End-to-end multitask learning, from protein language to protein features without alignments / 2019
+* Chen / Predicting HLA class II antigen presentation through integrated deep learning / 2019
+* Gupta / Feedback GAN for DNA optimizes protein functions / 2019
+* Mason / Deep learning enables therapeutic antibody optimization in mammalian cells by deciphering high-dimensional protein sequence space / 2019
 * Vig / BERTology Meets Biology: Interpreting Attention in Protein Language Models / 2020
 * Choromanski / Masked Language Modeling for Proteins via Linearly Scalable Long-Context Transformers / 2020
 * Filipavicius / Pre-training Protein Language Models with Label-Agnostic Binding Pairs Enhances Performance in Downstream Tasks / 2020 / **read**
@@ -69,13 +79,16 @@ Guidelines: mark the papers already fully-read, keep chronological order (from e
 * Madani / ProGen: Language Modeling for Protein Generation / 2020
 * Lu / Self-Supervised Contrastive Learning of Protein Representations By Mutual Information Maximization / 2020
 * Shen / Improving Generalizability of Protein Sequence Models With Data Augmentations / 2020
+* Senior / Improved protein structure prediction using potentials from deep learning (alphafold1) / 2020
+* Yang / Improved protein structure prediction using predicted interresidue orientations / 2020
+* Friedensohn / Convergent selection in antibody repertoires is revealed by deep learning / 2020
 * Grechishnikova / Transformer neural network for protein‐specific de novo drug generation as a machine translation problem / 2021
 * Rao / MSA Transformer / 2021
 * Thumuluri / NetSolP: predicting protein solubility in E. coli using language models / 2021
 * Elnaggar / ProtTrans: Towards Cracking the Language of Life’s Code Through Self-Supervised Learning / 2021
 * Rao / Transformer protein language models are unsupervised structure learners / 2021 / **read**
 * Rives / Biological structure and function emerge from scaling unsupervised learning to 250 million protein sequences / 2021 / **read**
-* Abanades / ABlooper: Fast accurate antibody CDR loop structure prediction with accuracy estimation / 2021
+* Abanades / ABlooper: Fast accurate antibody CDR loop structure prediction with accuracy estimation / 2021 / **read**
 * Weinstein / Optimal Design of Stochastic DNA Synthesis Protocols based on Generative Sequence Models / 2021
 * Townshend / Geometric deep learning of RNA structure / 2021
 * Repecka / Expanding functional protein sequence spaces using generative adversarial networks / 2021
@@ -83,9 +96,22 @@ Guidelines: mark the papers already fully-read, keep chronological order (from e
 * Luo / ECNet is an evolutionary context-integrated deep learning framework for protein engineering / 2021
 * McGee / The generative capacity of probabilistic protein sequence models / 2021
 * Shin / Protein Design and Variant Prediction Using Autoregressive Generative Models / 2021
+* Robinson / Epitope profiling of coronavirus-binding antibodies using computational structural modelling / 2021
+* Jumper / Highly accurate protein structure prediction with alphafold (alphafold2) / 2021
+* Baek / Accurate prediction of protein structures and interactions using a three-track neural network / 2021
+* Ripoll / Using the antibody-antigen binding interface to train image-based deep neural networks for antibody-epitope classification / 2021
+* Wang / LM-GVP: A Generalizable Deep Learning Framework for Protein Property Prediction from Sequence and Structure / 2021
+* Giannakoulias / Biomolecular simulation based machine learning models accurately predict sites of tolerability to the unnatural amino acid acridonylalanine / 2021
+* Ruffolo / Antibody structure prediction using interpretable deep learning (DeepAb) / 2021
 
 
-## Misc. ideas
+## Misc. topics / ideas
+
+Equivariant neural networks vs prediction of invariant features for 3D structure modelling. Relationship to data augmentation and regularization (feature invariance) ? Relationship to inductive biases, physical constraints and differentiable rendering ~ equivariance ? Can residual/skip connections or NODE (neural ordinary differential equations) or invertible flows be used to parameterize equivariance ?
+
+* Garcia / E(n) equivariant graph neural networks / 2021
+* Finzi / A practical method for constructing equivariant multilayer perceptrons for arbitrary matrix groups / 2021
+
 
 Modified cross-entropy loss for supervised training with imbalanced data. Hard/easy example mining.
 
@@ -93,15 +119,19 @@ Modified cross-entropy loss for supervised training with imbalanced data. Hard/e
 * Xuan / Hard negative examples are hard, but useful / 2020
 * Xuan / Improved Embeddings with Easy Positive Triplet Mining / 2020
 
-Investigate other SSL approaches than masked language modeling, using data augmentations on sequences for contrastive and teacher-student training.
+
+Investigate other SSL approaches than masked language modeling, using data augmentations on sequences for contrastive and teacher-student training. Or project sequences to image domain and use SSL inspired from computer vision.
+
 
 Use the language modeling objectives e.g. next or masked token prediction as a generative method for protein optimization. Visualize the attention maps, do the positions with highest avg. attention are the most critical sites for function ? Then either "mutate" positions of lower attention or higher attention depending on the strenght of modification desired ?
+
 
 Train (cross-modal) inference models on e.g. aligned sequences and labels, train unconditional generative models on sequences, then do latent space search of the generative representation in the "CLIP-guided style".
 
 * Radford / Learning Transferable Visual Models From Natural Language Supervision (CLIP) / 2021
 * Galatolo / Generating images from caption and vice versa via CLIP-Guided Generative Latent Space Search / 2021
 * Kim1 / DiffusionCLIP: Text-Guided Diffusion Models for Robust Image Manipulation / 2021
+
 
 Or alternatively, train controlable generative model on top of unconditional generative latent space.
 
